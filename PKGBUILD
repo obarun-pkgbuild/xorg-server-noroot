@@ -4,9 +4,9 @@
 # 						Maintainer: Jan de Groot <jgc@archlinux.org>
 
 pkgbase=xorg-server
-pkgname=('xorg-server-noroot' 'xorg-server-xephyr-noroot' 'xorg-server-xdmx-noroot' 'xorg-server-xvfb-noroot'
-		'xorg-server-xnest-noroot' 'xorg-server-xwayland-noroot' 'xorg-server-common-noroot' 'xorg-server-devel-noroot')
-pkgver=1.19.3
+pkgname=('xorg-server-rootless' 'xorg-server-xephyr-rootless' 'xorg-server-xdmx-rootless' 'xorg-server-xvfb-rootless'
+		'xorg-server-xnest-rootless' 'xorg-server-xwayland-rootless' 'xorg-server-common-rootless' 'xorg-server-devel-rootless')
+pkgver=1.19.4
 pkgrel=1
 arch=('x86_64')
 license=('custom')
@@ -23,21 +23,13 @@ source=(https://xorg.freedesktop.org/releases/individual/xserver/${pkgbase}-${pk
         xvfb-run
 		xvfb-run.1
 		nvidia-add-modulepath-support.patch
-		xserver-autobind-hotplug.patch
-		modesetting-Set-correct-DRM-event-context-version.patch
-		CVE-2017-10971.patch
-        CVE-2017-10972.patch
-        bug99708.patch)
+		xserver-autobind-hotplug.patch)
 		
-sha256sums=('677a8166e03474719238dfe396ce673c4234735464d6dadf2959b600d20e5a98'
+sha256sums=('aa758acea91deaf1f95069ddc5ea3818e13675fb14fef40ad1b3d0b2bf03c9a8'
             'ff0156309470fc1d378fd2e104338020a884295e285972cc88e250e031cc35b9'
             '2460adccd3362fefd4cdc5f1c70f332d7b578091fb9167bf88b5f91265bbd776'
             '23f2fd69a53ef70c267becf7d2a9e7e07b739f8ec5bec10adb219bc6465099c7'
-            '67aaf8668c5fb3c94b2569df28e64bfa1dc97ce429cbbc067c309113caff6369'
-            'acb0357acf54073eda30b4014a9f402448dc65b5e465ae5b5c5b807914b43da2'
-            '3950d5d64822b4a34ca0358389216eed25e159751006d674e7cb491aa3b54d0b'
-            '700af48c541f613b376eb7a7e567d13c0eba7a835d0aaa9d4b0431ebdd9f397c'
-            '67013743ba8ff1663b233f50fae88989d36504de83fca5f93af5623f2bef6920')
+            '67aaf8668c5fb3c94b2569df28e64bfa1dc97ce429cbbc067c309113caff6369')
 validpgpkeys=('6DD4217456569BA711566AC7F06E8FDE7B45DAAC') # Eric Vidal
 
 prepare() {
@@ -49,14 +41,6 @@ prepare() {
   # patch from Fedora, not yet merged
   patch -Np1 -i ../xserver-autobind-hotplug.patch
   
-  # merged in trunk
-  patch -Np1 -i ../modesetting-Set-correct-DRM-event-context-version.patch
-  patch -Np1 -i ../CVE-2017-10971.patch
-  patch -Np1 -i ../CVE-2017-10972.patch
-
-  # https://bugs.archlinux.org/task/53404
-  patch -Np1 -i ../bug99708.patch
-
   autoreconf -vfi
 }
 
@@ -115,12 +99,12 @@ build() {
       -i hw/Makefile
 }
 
-package_xorg-server-common-noroot() {
+package_xorg-server-common-rootless() {
   pkgdesc="Xorg server common files"
   depends=('xkeyboard-config' 'xorg-xkbcomp' 'xorg-setxkbmap' 'xorg-fonts-misc' 'libunwind')
   conflicts=('xorg-server-common')
   provides=('xorg-server-common')
-  replaces=('xorg-server-common')
+  replaces=('xorg-server-common-noroot')
   
   cd "${pkgbase}-${pkgver}"
   install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-common"
@@ -135,7 +119,7 @@ package_xorg-server-common-noroot() {
   install -m644 dix/protocol.txt "${pkgdir}/usr/lib/xorg/"
 }
 
-package_xorg-server-noroot() {
+package_xorg-server-rootless() {
   pkgdesc="Xorg X server"
   depends=('libepoxy' 'libxfont2' 'pixman' 'xorg-server-common' 'libunwind' 'libgl' 'xf86-input-libinput'
 			'libpciaccess' 'libdrm' 'libxshmfence')
@@ -143,7 +127,7 @@ package_xorg-server-noroot() {
   # and /usr/lib/pkgconfig/xorg-server.pc in xorg-server-devel pkg
   provides=('X-ABI-VIDEODRV_VERSION=23' 'X-ABI-XINPUT_VERSION=24.1' 'X-ABI-EXTENSION_VERSION=10.0' 'x-server' 'xorg-server')
   conflicts=('nvidia-utils<=331.20' 'glamor-egl' 'xf86-video-modesetting' 'xorg-server')
-  replaces=('glamor-egl' 'xf86-video-modesetting' 'xorg-server')
+  replaces=('glamor-egl' 'xf86-video-modesetting' 'xorg-server-noroot')
   optdepends=('xf86-video-nouveau: drivers for nvidia'
 			'xf86-video-intel: drivers for intel'
 			'xf86-video-ati: drivers for radeon'
@@ -173,13 +157,14 @@ package_xorg-server-noroot() {
   rm -rf "${pkgdir}/usr/share/aclocal"
 }
 
-package_xorg-server-xephyr-noroot() {
+package_xorg-server-xephyr-rootless() {
   pkgdesc="A nested X server that runs as an X application"
   depends=('libxfont2' 'libgl' 'libepoxy' 'libunwind' 'libxv' 'pixman' 'xorg-server-common' 'xcb-util-image'
            'xcb-util-renderutil' 'xcb-util-wm' 'xcb-util-keysyms')
   conflicts=('xorg-server-xephyr')
   provides=('xorg-server-xephyr')
-  replaces=('xorg-server-xephyr')
+  replaces=('xorg-server-xephyr-noroot')
+  
   cd "${pkgbase}-${pkgver}/hw/kdrive"
   make DESTDIR="${pkgdir}" install
 
@@ -187,12 +172,13 @@ package_xorg-server-xephyr-noroot() {
   ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-xephyr/COPYING"
 }
 
-package_xorg-server-xvfb-noroot() {
+package_xorg-server-xvfb-rootless() {
   pkgdesc="Virtual framebuffer X server"
   depends=('libxfont2' 'libunwind' 'pixman' 'xorg-server-common' 'xorg-xauth' 'libgl')
   conflicts=('xorg-server-xvfb')
   provides=('xorg-server-xvfb')
-  replaces=('xorg-server-xvfb')
+  replaces=('xorg-server-xvfb-noroot')
+ 
   cd "${pkgbase}-${pkgver}/hw/vfb"
   make DESTDIR="${pkgdir}" install
 
@@ -203,12 +189,13 @@ package_xorg-server-xvfb-noroot() {
   ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-xvfb/COPYING"
 }
 
-package_xorg-server-xnest-noroot() {
+package_xorg-server-xnest-rootless() {
   pkgdesc="A nested X server that runs as an X application"
   depends=('libxfont2' 'libxext' 'libunwind' 'pixman' 'xorg-server-common')
   conflicts=('xorg-server-xnest')
   provides=('xorg-server-xnest')
-  replaces=('xorg-server-xnest')
+  replaces=('xorg-server-xnest-noroot')
+  
   cd "${pkgbase}-${pkgver}/hw/xnest"
   make DESTDIR="${pkgdir}" install
 
@@ -216,12 +203,13 @@ package_xorg-server-xnest-noroot() {
   ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-xnest/COPYING"
 }
 
-package_xorg-server-xdmx-noroot() {
+package_xorg-server-xdmx-rootless() {
   pkgdesc="Distributed Multihead X Server and utilities"
   depends=('libxfont2' 'libxi' 'libxaw' 'libxrender' 'libdmx' 'libxfixes' 'libunwind' 'pixman' 'xorg-server-common')
   conflicts=('xorg-server-xdmx')
   provides=('xorg-server-xdmx')
-  replaces=('xorg-server-xdmx')
+  replaces=('xorg-server-xdmx-noroot')
+  
   cd "${pkgbase}-${pkgver}/hw/dmx"
   make DESTDIR="${pkgdir}" install
 
@@ -229,12 +217,13 @@ package_xorg-server-xdmx-noroot() {
   ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-xdmx/COPYING"
 }
 
-package_xorg-server-xwayland-noroot() {
+package_xorg-server-xwayland-rootless() {
   pkgdesc="run X clients under wayland"
   depends=('libxfont2' 'libepoxy' 'libunwind' 'libgl' 'pixman' 'xorg-server-common')
   conflicts=('xorg-server-xwayland')
   provides=('xorg-server-xwayland')
-  replaces=('xorg-server-xwayland')
+  replaces=('xorg-server-xwayland-noroot')
+  
   cd "${pkgbase}-${pkgver}/hw/xwayland"
   make DESTDIR="${pkgdir}" install
 
@@ -242,7 +231,7 @@ package_xorg-server-xwayland-noroot() {
   ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-xwayland/COPYING"
 }
 
-package_xorg-server-devel-noroot() {
+package_xorg-server-devel-rootless() {
   pkgdesc="Development files for the X.Org X server"
   depends=(# see pkgdir/usr/lib/pkgconfig/xorg-server.pc
            'xproto' 'randrproto' 'renderproto' 'xextproto' 'inputproto' 'kbproto' 
@@ -253,7 +242,8 @@ package_xorg-server-devel-noroot() {
            'xorg-util-macros')
   conflicts=('xorg-server-devel')
   provides=('xorg-server-devel')
-  replaces=('xorg-server-devel')
+  replaces=('xorg-server-devel-noroot')
+  
   cd "${pkgbase}-${pkgver}"
   make DESTDIR="${pkgdir}" install
 

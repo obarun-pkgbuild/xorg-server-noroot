@@ -7,7 +7,7 @@ pkgbase=xorg-server
 pkgname=('xorg-server-rootless' 'xorg-server-xephyr-rootless' 'xorg-server-xdmx-rootless' 'xorg-server-xvfb-rootless'
 		'xorg-server-xnest-rootless' 'xorg-server-xwayland-rootless' 'xorg-server-common-rootless' 'xorg-server-devel-rootless')
 pkgver=1.19.6
-pkgrel=1
+pkgrel=2
 arch=('x86_64')
 license=('custom')
 #groups=('xorg')
@@ -46,7 +46,7 @@ prepare() {
   # https://bugs.archlinux.org/task/56804 
   # https://bugs.freedesktop.org/show_bug.cgi?id=104382
   patch -Rp1 -i ../revert-udev-changes.diff
-
+ 
   autoreconf -vfi
 }
 
@@ -142,7 +142,7 @@ package_xorg-server-rootless() {
 			'xf86-input-evdev: X.org evdev input driver'
 			'xf86-input-keyboard: X.Org keyboard input driver'
 			'xf86-input-mouse: X.org mouse input driver')
-  install=xorg-server-noroot.install
+  install=xorg-server-rootless.install
 
   cd "${pkgbase}-${pkgver}"
   make DESTDIR="${pkgdir}" install

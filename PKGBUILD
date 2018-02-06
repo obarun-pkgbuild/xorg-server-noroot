@@ -6,7 +6,7 @@
 pkgbase=xorg-server
 pkgname=('xorg-server-rootless' 'xorg-server-xephyr-rootless' 'xorg-server-xdmx-rootless' 'xorg-server-xvfb-rootless'
 		'xorg-server-xnest-rootless' 'xorg-server-xwayland-rootless' 'xorg-server-common-rootless' 'xorg-server-devel-rootless')
-pkgver=1.19.6
+pkgver=1.19.6+13+gd0d1a694f
 pkgrel=2
 arch=('x86_64')
 license=('custom')
@@ -19,14 +19,16 @@ makedepends=('pixman' 'libx11' 'mesa' 'mesa-libgl' 'xf86driproto' 'xcmiscproto' 
              'xorg-xkbcomp' 'xorg-util-macros' 'xorg-font-util' 'glproto' 'dri2proto' 'libgcrypt' 'libepoxy'
              'xcb-util' 'xcb-util-image' 'xcb-util-renderutil' 'xcb-util-wm' 'xcb-util-keysyms' 'dri3proto'
              'libxshmfence' 'libunwind' 'wayland-protocols') 
-source=(https://xorg.freedesktop.org/releases/individual/xserver/${pkgbase}-${pkgver}.tar.bz2
+_commit=d0d1a694f967af770fba0d36043fd5218ff20984 # branch 1.19
+#source=(https://xorg.freedesktop.org/releases/individual/xserver/${pkgbase}-${pkgver}.tar.bz2
+source=("git+https://anongit.freedesktop.org/git/xorg/xserver.git#commit=$_commit"
         xvfb-run
 		xvfb-run.1
 		nvidia-add-modulepath-support.patch
 		xserver-autobind-hotplug.patch
 		revert-udev-changes.diff)
 		
-sha256sums=('a732502f1db000cf36a376cd0c010ffdbf32ecdd7f1fa08ba7f5bdf9601cc197'
+sha256sums=('SKIP'
             'ff0156309470fc1d378fd2e104338020a884295e285972cc88e250e031cc35b9'
             '2460adccd3362fefd4cdc5f1c70f332d7b578091fb9167bf88b5f91265bbd776'
             '23f2fd69a53ef70c267becf7d2a9e7e07b739f8ec5bec10adb219bc6465099c7'
@@ -34,8 +36,14 @@ sha256sums=('a732502f1db000cf36a376cd0c010ffdbf32ecdd7f1fa08ba7f5bdf9601cc197'
             'c551dd768de10dd8a47213696003d118edb248ca6c09c0d9f1591abb0632d199')
 validpgpkeys=('6DD4217456569BA711566AC7F06E8FDE7B45DAAC') # Eric Vidal
 
+pkgver() {
+  cd xserver
+  git describe --tags | sed 's/^xorg-server-//;s/_/./g;s/-/+/g'
+}
+
 prepare() {
-  cd "${pkgbase}-${pkgver}"
+  #cd "${pkgbase}-${pkgver}"
+  cd xserver
   
   # merged upstream in trunk
   patch -Np1 -i ../nvidia-add-modulepath-support.patch
@@ -43,10 +51,6 @@ prepare() {
   # patch from Fedora, not yet merged
   patch -Np1 -i ../xserver-autobind-hotplug.patch
   
-  # https://bugs.archlinux.org/task/56804 
-  # https://bugs.freedesktop.org/show_bug.cgi?id=104382
-  patch -Rp1 -i ../revert-udev-changes.diff
- 
   autoreconf -vfi
 }
 
@@ -59,7 +63,8 @@ build() {
   export CXXFLAGS=${CXXFLAGS/-fno-plt}
   export LDFLAGS=${LDFLAGS/,-z,now}
   
-  cd "${pkgbase}-${pkgver}"
+ # cd "${pkgbase}-${pkgver}"
+ cd xserver
   ./configure --prefix=/usr \
       --enable-ipv6 \
       --enable-dri \
@@ -112,7 +117,8 @@ package_xorg-server-common-rootless() {
   provides=('xorg-server-common')
   replaces=('xorg-server-common-noroot')
   
-  cd "${pkgbase}-${pkgver}"
+  cd xserver
+#  cd "${pkgbase}-${pkgver}"
   install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-common"
   install -m644 COPYING "${pkgdir}/usr/share/licenses/xorg-server-common"
   
@@ -144,7 +150,8 @@ package_xorg-server-rootless() {
 			'xf86-input-mouse: X.org mouse input driver')
   install=xorg-server-rootless.install
 
-  cd "${pkgbase}-${pkgver}"
+  cd xserver
+  #cd "${pkgbase}-${pkgver}"
   make DESTDIR="${pkgdir}" install
 
   # distro specific files must be installed in /usr/share/X11/xorg.conf.d
@@ -171,7 +178,8 @@ package_xorg-server-xephyr-rootless() {
   provides=('xorg-server-xephyr')
   replaces=('xorg-server-xephyr-noroot')
   
-  cd "${pkgbase}-${pkgver}/hw/kdrive"
+  cd xserver/hw/kdrive
+ # cd "${pkgbase}-${pkgver}/hw/kdrive"
   make DESTDIR="${pkgdir}" install
 
   install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-xephyr"
@@ -185,7 +193,8 @@ package_xorg-server-xvfb-rootless() {
   provides=('xorg-server-xvfb')
   replaces=('xorg-server-xvfb-noroot')
  
-  cd "${pkgbase}-${pkgver}/hw/vfb"
+  cd xserver/hw/vfb
+ # cd "${pkgbase}-${pkgver}/hw/vfb"
   make DESTDIR="${pkgdir}" install
 
   install -m755 "${srcdir}/xvfb-run" "${pkgdir}/usr/bin/"
@@ -216,7 +225,8 @@ package_xorg-server-xdmx-rootless() {
   provides=('xorg-server-xdmx')
   replaces=('xorg-server-xdmx-noroot')
   
-  cd "${pkgbase}-${pkgver}/hw/dmx"
+  cd xserver/hw/dmx
+ # cd "${pkgbase}-${pkgver}/hw/dmx"
   make DESTDIR="${pkgdir}" install
 
   install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-xdmx"
@@ -230,7 +240,8 @@ package_xorg-server-xwayland-rootless() {
   provides=('xorg-server-xwayland')
   replaces=('xorg-server-xwayland-noroot')
   
-  cd "${pkgbase}-${pkgver}/hw/xwayland"
+  cd xserver/hw/xwayland
+ # cd "${pkgbase}-${pkgver}/hw/xwayland"
   make DESTDIR="${pkgdir}" install
 
   install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-xwayland"
@@ -250,7 +261,8 @@ package_xorg-server-devel-rootless() {
   provides=('xorg-server-devel')
   replaces=('xorg-server-devel-noroot')
   
-  cd "${pkgbase}-${pkgver}"
+  cd xserver
+ # cd "${pkgbase}-${pkgver}"
   make DESTDIR="${pkgdir}" install
 
   rm -rf "${pkgdir}/usr/bin"

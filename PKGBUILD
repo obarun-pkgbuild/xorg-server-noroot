@@ -7,7 +7,7 @@ pkgbase=xorg-server
 pkgname=('xorg-server-rootless' 'xorg-server-xephyr-rootless' 'xorg-server-xdmx-rootless' 'xorg-server-xvfb-rootless'
 		'xorg-server-xnest-rootless' 'xorg-server-xwayland-rootless' 'xorg-server-common-rootless' 'xorg-server-devel-rootless')
 pkgver=1.19.6+13+gd0d1a694f
-pkgrel=2
+pkgrel=1
 arch=('x86_64')
 license=('custom')
 #groups=('xorg')
@@ -211,7 +211,8 @@ package_xorg-server-xnest-rootless() {
   provides=('xorg-server-xnest')
   replaces=('xorg-server-xnest-noroot')
   
-  cd "${pkgbase}-${pkgver}/hw/xnest"
+  cd xserver/hw/xnest
+  #cd "${pkgbase}-${pkgver}/hw/xnest"
   make DESTDIR="${pkgdir}" install
 
   install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-xnest"

@@ -7,7 +7,7 @@ pkgbase=xorg-server
 pkgname=('xorg-server-rootless' 'xorg-server-xephyr-rootless' 'xorg-server-xdmx-rootless' 'xorg-server-xvfb-rootless'
 		'xorg-server-xnest-rootless' 'xorg-server-xwayland-rootless' 'xorg-server-common-rootless' 'xorg-server-devel-rootless')
 pkgver=1.19.6+13+gd0d1a694f
-pkgrel=1
+pkgrel=2
 arch=('x86_64')
 license=('custom')
 #groups=('xorg')
@@ -26,14 +26,14 @@ source=("git+https://anongit.freedesktop.org/git/xorg/xserver.git#commit=$_commi
 		xvfb-run.1
 		nvidia-add-modulepath-support.patch
 		xserver-autobind-hotplug.patch
-		revert-udev-changes.diff)
+		xext-shm-downgrade-from-error-to-debug.patch)
 		
 sha256sums=('SKIP'
             'ff0156309470fc1d378fd2e104338020a884295e285972cc88e250e031cc35b9'
             '2460adccd3362fefd4cdc5f1c70f332d7b578091fb9167bf88b5f91265bbd776'
             '23f2fd69a53ef70c267becf7d2a9e7e07b739f8ec5bec10adb219bc6465099c7'
             '67aaf8668c5fb3c94b2569df28e64bfa1dc97ce429cbbc067c309113caff6369'
-            'c551dd768de10dd8a47213696003d118edb248ca6c09c0d9f1591abb0632d199')
+            'b894948e9eba733ae586d59b647a8b40551875dddeea91610546930fdda22063')
 validpgpkeys=('6DD4217456569BA711566AC7F06E8FDE7B45DAAC') # Eric Vidal
 
 pkgver() {
@@ -50,8 +50,11 @@ prepare() {
 
   # patch from Fedora, not yet merged
   patch -Np1 -i ../xserver-autobind-hotplug.patch
+
+	# merged upstream in trunk (FS#58187)
+	patch -Np1 -i ../xext-shm-downgrade-from-error-to-debug.patch
   
-  autoreconf -vfi
+	autoreconf -vfi
 }
 
 build() {
